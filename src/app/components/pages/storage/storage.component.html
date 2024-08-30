@@ -14,10 +14,7 @@
     <p-menu #menu [model]="menuItem" [popup]="true" />
 </div>
 
-@if (!selectedFile) {
-    <app-files-list #refFileList [filesList]="[]"></app-files-list>
-} @else {
-}
+<app-files-list #refFileList></app-files-list>
 
 
 <p-dialog header="Connect to Storage" [modal]="true" [(visible)]="showConnectionDialog" [style]="{ width: '30vw' }">
