@@ -1,0 +1,69 @@
+<div class="w-full flex justify-end gap-4 h-full p-4">
+    <p-dropdown [options]="assistantsData" (onChange)="this.selectAssistant($event)" [(ngModel)]="connectionService.selectedAssistant"
+        placeholder="Select an Assistant" styleClass="w-[20rem]" [filter]="true" optionLabel="name" />
+
+
+    <button pButton (click)="menu.toggle($event)">
+        <span class="flex gap-2">
+            Options
+            <span class="material-symbols-outlined">apps</span>
+        </span>
+    </button>
+
+
+    <p-menu #menu [model]="menuItem" [popup]="true" />
+</div>
+
+@if (!selectedFile) {
+    <app-files-list #refFileList [filesList]="[]"></app-files-list>
+} @else {
+}
+
+
+<p-dialog header="Connect to Storage" [modal]="true" [(visible)]="showConnectionDialog" [style]="{ width: '30vw' }">
+    <ng-container [formGroup]="connectionForm">
+        <div class="flex flex-col gap-3 mb-3 items-start w-full">
+            <label for="connection" class="font-semibold w-full">Connection String</label>
+            <input pInputText id="connection" class="flex-auto w-full" autocomplete="off" formControlName="connectionString" />
+        </div>
+        <div class="flex flex-col gap-3 mb-3 items-start w-full">
+            <label for="path" class="font-semibold w-full">Path</label>
+            <input pInputText id="path" class="flex-auto w-full" autocomplete="off" formControlName="path" />
+        </div>
+        <div class="flex justify-end gap-2 mt-8 w-full">
+            <p-button label="Cancel" severity="secondary" (onClick)="closeDialog()" />
+            <p-button label="Save" (onClick)="save()" />
+        </div>
+    </ng-container>
+</p-dialog>
+
+<p-dialog header="Tools" [modal]="true" [(visible)]="showToolDialog" [style]="{ width: '30vw' }">
+    <ng-container>
+        <div class="flex flex-col gap-3 mb-3 items-start w-full">
+            <label for="connection" class="font-semibold w-full">JSON Parameters</label>
+            <textarea rows="20" cols="50" pInputTextarea [(ngModel)]="this.toolDialogValue">
+        </textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-8 w-full">
+            @if(this.assistantService.isConnected()){
+                <p-button label="Refresh" severity="secondary" (onClick)="fetchPrompt()" />
+            }
+            <p-button label="Cancel" severity="secondary" (onClick)="closeToolDialog()" />
+            <p-button label="Save" (onClick)="saveToolDialog()" />
+        </div>
+    </ng-container>
+</p-dialog>
+
+<p-dialog header="Connect to OpenAI" [modal]="true" [(visible)]="showOpenAiDialog" [style]="{ width: '30vw' }">
+    <ng-container>
+        <div class="flex flex-col gap-3 mb-3 items-start w-full">
+            <label for="apiKey" class="font-semibold w-full">Open AI API Key</label>
+            <input pInputText id="apiKey" class="flex-auto w-full" [(ngModel)]="openAiKey" autocomplete="off" />
+        </div>
+        <div class="flex justify-end gap-2 mt-8 w-full">
+            <p-button label="Cancel" severity="secondary" (onClick)="closeOpenAiDialog()" />
+            <p-button label="Save" (onClick)="saveOpenAiDialog()" />
+        </div>
+    </ng-container>
+</p-dialog>

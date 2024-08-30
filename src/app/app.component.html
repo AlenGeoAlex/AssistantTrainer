@@ -1,0 +1,19 @@
+
+@if(loaderService?.loader ?? false){
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <p-progressSpinner [hidden]="loaderService?.loader ?? true" [ariaLabel]="loaderService.loader" />
+    </div>
+}
+
+<p-tabView styleClass="h-screen">
+  <p-tabPanel header="Storage">
+    <div class="w-full flex justify-between">
+      <app-storage class="block w-full h-full"></app-storage>
+    </div>
+  </p-tabPanel>
+  <p-tabPanel header="Local">
+    <app-local class="block w-full h-full"></app-local>
+  </p-tabPanel>
+</p-tabView>
+
+<p-toast  position="bottom-right"/>

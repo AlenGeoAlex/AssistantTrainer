@@ -1,0 +1,9 @@
+// @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../node_modules/primeng/resources/themes/aura-dark-noir/theme.css";
+@import "../node_modules/primeng/resources/primeng.css";
+
+@import './styles/layout';
+@import './styles/common';
