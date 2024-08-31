@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IConnectionConfig } from '../models/connection-config';
-import { Observable, of } from 'rxjs';
+import {Observable, of, throwError} from 'rxjs';
 import { IStorageFiles } from '../models/storage-files';
 import {IAssistant} from "../models/assistant.model";
 import {store} from "../store/store";
@@ -31,7 +31,7 @@ export class StorageConnectionService {
         const blobServiceClient = new BlobServiceClient(connectionConfig.connectionString);
         const client = blobServiceClient.getContainerClient(connectionConfig.path);
         if(!await client.exists())
-          reject(`No container with name ${connectionConfig.path} exists!`)
+          reject(`No container with name ${connectionConfig.path} exists!`);
         
 
         this.blobClient = blobServiceClient;
@@ -44,9 +44,19 @@ export class StorageConnectionService {
     })
   }
 
-  public getTrainingData(): Observable<IStorageFiles[]> {
-    //this.containerClient?.listBlobsFlat().byPage()
-    return of([])
+  public async getTrainingData(assistantName: string): Promise<IStorageFiles[]> {
+    if(!this.selectedAssistant || !this.containerClient)
+      return Promise.reject("No valid connection configuration present");
+    const iterator = this.containerClient.listBlobsFlat({
+      prefix: `${assistantName}/`,
+    });
+
+
+    for await (const file of iterator) {
+      console.log(file)
+    }
+
+    return Promise.resolve([])
   }
 
 }

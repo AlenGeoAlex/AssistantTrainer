@@ -103,9 +103,10 @@ export class StorageComponent implements OnInit {
       try {
         this.connectionForm.patchValue(azureConfig);
         await this.connectionService.connect(azureConfig);
-        await this.appFileList.refresh()
+        await this.appFileList?.refresh()
         this.messageService.add({ severity: 'success', summary: 'Connection complete', detail: `Connection has been made to ${azureConfig.path}`, });
       }catch (err){
+        console.error(err)
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.toString() || 'An error occurred', });
       }
     }
@@ -216,6 +217,7 @@ export class StorageComponent implements OnInit {
         this.connectionForm.markAsPristine();
         this.connectionForm.markAsUntouched();
       }).catch((error) => {
+        console.error(error)
         this.messageService.add({ severity: 'error', summary: 'Error', detail: error.message || 'An error occurred', });
       })
     }
@@ -281,6 +283,7 @@ export class StorageComponent implements OnInit {
         }
       },
       error: (error) => {
+        console.error(error)
         this.messageService.add({ severity: 'error', summary: 'Error', detail: error.message || 'An error occurred', });
         this.loaderService.disableLoading()
       }

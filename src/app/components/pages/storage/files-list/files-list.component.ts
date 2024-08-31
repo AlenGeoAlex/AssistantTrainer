@@ -16,10 +16,16 @@ export class FilesListComponent implements OnInit{
   protected readonly filesList : IStorageFiles[] = []
 
   ngOnInit(): void {
-    throw new Error('Method not implemented.');
+    this.refresh().then(() => {
+      console.log(1)
+    })
   }
 
-  public refresh() : Promise<void>{
+  public async refresh() : Promise<void>{
+    if(!this.connectionService.selectedAssistant)
+      return Promise.resolve();
+
+    await this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name)
     return Promise.resolve();
   }
 
