@@ -1,23 +1,23 @@
 import { CommonModule } from '@angular/common';
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StorageConnectionService } from '../../../services/storage-connection.service';
 import { IConnectionConfig, IConnectionConfigForm } from '../../../models/connection-config';
 import { ToastModule } from 'primeng/toast';
-import {MenuItem, MessageService} from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { AssistantsService } from '../../../services/assistants.service';
 import { IAssistant } from '../../../models/assistant.model';
 import { IStorageFiles } from '../../../models/storage-files';
 import { FilesListComponent } from './files-list/files-list.component';
-import {InputTextareaModule} from "primeng/inputtextarea";
-import {store} from "../../../store/store";
-import {LoaderService} from "../../../services/loader.service";
-import {MenuModule} from "primeng/menu";
-import {StoreKeys} from "../../../store/store-keys";
+import { InputTextareaModule } from "primeng/inputtextarea";
+import { store } from "../../../store/store";
+import { LoaderService } from "../../../services/loader.service";
+import { MenuModule } from "primeng/menu";
+import { StoreKeys } from "../../../store/store-keys";
 import { ReviewFileComponent } from "./review-file/review-file.component";
 
 @Component({
@@ -29,7 +29,9 @@ import { ReviewFileComponent } from "./review-file/review-file.component";
 })
 export class StorageComponent implements OnInit {
 
-  @ViewChild('refFileList') appFileList!: FilesListComponent;
+  @ViewChild(FilesListComponent) appFileList?: FilesListComponent;
+  @ViewChild(ReviewFileComponent) reviewFile?: ReviewFileComponent;
+
   protected connectionService = inject(StorageConnectionService)
   private messageService = inject(MessageService)
   protected assistantService = inject(AssistantsService)
@@ -40,7 +42,8 @@ export class StorageComponent implements OnInit {
   protected showOpenAiDialog: boolean = false;
   assistantsData: IAssistant[] = [];
 
-  selectedFileName: string = '';
+  selectedFileName?: IStorageFiles;
+  completedFileData?: IStorageFiles;
 
   connectionForm = new FormGroup<IConnectionConfigForm>({
     connectionString: new FormControl('', Validators.required),
@@ -58,7 +61,7 @@ export class StorageComponent implements OnInit {
           label: 'Azure Storage',
           icon: 'pi pi-refresh',
           command: () => {
-            setTimeout( async () => {
+            setTimeout(async () => {
               await this.showDialog();
             }, 400)
           },
@@ -67,14 +70,13 @@ export class StorageComponent implements OnInit {
           label: 'Open AI',
           icon: 'pi pi-upload',
           command: async () => {
-            setTimeout( async () => {
+            setTimeout(async () => {
               await this.showOpenAiToolDialog();
             }, 400)
           }
         }
       ]
     },
-
     {
       label: 'Open AI',
       items: [
@@ -88,27 +90,39 @@ export class StorageComponent implements OnInit {
           }
         }
       ]
+    },
+    {
+      label: 'Persistance',
+      items: [
+        {
+          label: 'Clear Completed',
+          icon: 'pi pi-times',
+          command: () => {
+            store.remove(StoreKeys.PERSIST_COMPLETED_FILES)
+          }
+        }
+      ]
     }
   ]
 
-  async ngOnInit() :Promise<void> {
+  async ngOnInit(): Promise<void> {
     const apiKey = await store.get(StoreKeys.PERSIST_OPEN_AI);
-    if(apiKey){
+    if (apiKey) {
       try {
         await this.assistantService.connect(apiKey)
         this.getAssistants();
-      }catch(error){}
+      } catch (error) { }
     }
 
     // Get the Azure Config
     const azureConfig = await store.get(StoreKeys.PERSIST_AZURE);
-    if(azureConfig){
+    if (azureConfig) {
       try {
         this.connectionForm.patchValue(azureConfig);
         await this.connectionService.connect(azureConfig);
         await this.appFileList?.refresh()
         this.messageService.add({ severity: 'success', summary: 'Connection complete', detail: `Connection has been made to ${azureConfig.path}`, });
-      }catch (err){
+      } catch (err) {
         console.error(err)
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.toString() || 'An error occurred', });
       }
@@ -125,9 +139,9 @@ export class StorageComponent implements OnInit {
     this.showConnectionDialog = true;
   }
 
-  protected async showOpenAiToolDialog(){
+  protected async showOpenAiToolDialog() {
     const openAiKey = await store.get(StoreKeys.PERSIST_OPEN_AI);
-    if(openAiKey){
+    if (openAiKey) {
       this.openAiKey = openAiKey
     }
 
@@ -149,16 +163,16 @@ export class StorageComponent implements OnInit {
     this.connectionForm.markAsUntouched();
   }
 
-  closeOpenAiDialog(){
+  closeOpenAiDialog() {
     this.showOpenAiDialog = false;
   }
 
-  closeToolDialog(){
+  closeToolDialog() {
     this.showToolDialog = false;
     this.toolDialogValue = undefined;
   }
 
-  async fetchPrompt(){
+  async fetchPrompt() {
 
     if (!this.connectionService.selectedAssistant) {
       this.messageService.add({ severity: 'warn', summary: 'No Assistant Selected', detail: 'Please select an assistant first', });
@@ -175,7 +189,7 @@ export class StorageComponent implements OnInit {
     try {
       const response = await this.assistantService.fetchToolPrompt(this.connectionService.selectedAssistant.id);
       this.loaderService.disableLoading();
-      if(!response){
+      if (!response) {
         this.messageService.add({ severity: 'warn', summary: 'No tool prompt is available', detail: 'err', });
         return
       }
@@ -183,32 +197,32 @@ export class StorageComponent implements OnInit {
       this.toolDialogValue = JSON.stringify(response, null, 4);
       this.messageService.add({ severity: 'success', summary: 'Prompt Refreshed', detail: `New prompt has been refreshed from OpenAI`, });
 
-    }catch (err){
+    } catch (err) {
       this.messageService.add({ severity: 'warn', summary: 'Unknown Error', detail: 'err', });
     }
   }
 
-  async saveToolDialog(){
+  async saveToolDialog() {
     if (!this.connectionService.selectedAssistant) {
       this.messageService.add({ severity: 'warn', summary: 'No Assistant Selected', detail: 'Please select an assistant first', });
       return;
     }
 
-    if(!this.toolDialogValue){
+    if (!this.toolDialogValue) {
       this.messageService.add({ severity: 'warn', summary: 'No Tool Parameter', detail: 'Please provide a valid tool parameter', });
       return;
     }
 
-    let parsedObject : any = null;
-    try{
+    let parsedObject: any = null;
+    try {
       parsedObject = JSON.parse(this.toolDialogValue);
-    }catch (err){
+    } catch (err) {
       this.messageService.add({ severity: 'warn', summary: 'No Tool Parameter', detail: 'Please provide a valid tool parameter', });
       return;
     }
 
     await store.set(StoreKeys.getAssistantToolKey(this.connectionService.selectedAssistant.name), parsedObject);
-    this.messageService.add({severity: 'success', summary: 'Saved Success'})
+    this.messageService.add({ severity: 'success', summary: 'Saved Success' })
     this.closeToolDialog();
   }
 
@@ -226,21 +240,21 @@ export class StorageComponent implements OnInit {
     }
   }
 
-  async saveOpenAiDialog(){
-    if(this.openAiKey)
+  async saveOpenAiDialog() {
+    if (this.openAiKey)
       await this.connectAssistant(this.openAiKey)
 
     this.closeOpenAiDialog();
   }
 
-  async connectAssistant(key: string){
+  async connectAssistant(key: string) {
     try {
       await this.assistantService.connect(key)
       await store.set(StoreKeys.PERSIST_OPEN_AI, key);
       this.getAssistants();
       this.messageService.add({ severity: 'success', summary: 'Connection Successful', detail: 'Connected to OpenAI', });
 
-    }catch (err){
+    } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.toString() || 'An error occurred while connecting to OpenAI', });
     }
   }
@@ -263,23 +277,23 @@ export class StorageComponent implements OnInit {
 
         // Get the previously used assistant
         const existingAssistant = await store.get(StoreKeys.PERSIST_ASST);
-        if(existingAssistant){
+        if (existingAssistant) {
           const foundElement = this.assistantsData.find(x => x.id === existingAssistant.id && x.name === existingAssistant.name);
-          if(!foundElement){
+          if (!foundElement) {
             await store.remove(StoreKeys.PERSIST_ASST)
-            this.messageService.add({ severity: 'error', summary: 'Error', detail:'Removed stale assistant name', });
-          }else{
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Removed stale assistant name', });
+          } else {
             this.connectionService.selectedAssistant = foundElement;
-            await this.appFileList.refresh()
+            await this.appFileList?.refresh()
             const toolParams = await store.get(StoreKeys.getAssistantToolKey(this.connectionService.selectedAssistant.name));
-            if(toolParams){
+            if (toolParams) {
               try {
                 this.toolDialogValue = JSON.stringify(toolParams, null, 4);
-              }catch (err){
+              } catch (err) {
                 this.toolDialogValue = "";
-                this.messageService.add({ severity: 'error', summary: 'Error', detail:'An error occurred while parsing the tool parameter', });
+                this.messageService.add({ severity: 'error', summary: 'Error', detail: 'An error occurred while parsing the tool parameter', });
               }
-            }else{
+            } else {
               this.toolDialogValue = "";
             }
           }
@@ -291,6 +305,16 @@ export class StorageComponent implements OnInit {
         this.loaderService.disableLoading()
       }
     });
+  }
+
+  closeFile() {
+    this.selectedFileName = undefined;
+    this.completedFileData = undefined;
+    this.appFileList?.refresh();
+  }
+
+  completeReview(file: IStorageFiles) {
+    this.completedFileData = file;
   }
 
 }

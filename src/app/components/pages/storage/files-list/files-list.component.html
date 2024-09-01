@@ -2,12 +2,16 @@
     <div class="grid grid-cols-4 gap-4">
         @for(file of filesList; track file.id) {
         <div (click)="onClickFile(file)"
-            class="rounded-lg transition-all cursor-pointer bg-gray-800 p-4 flex flex-col items-center justify-center border-2 border-transparent hover:border-gray-500 border-solid">
+            class="rounded-lg relative transition-all cursor-pointer bg-gray-800 p-4 flex flex-col items-center justify-center border-2 border-transparent hover:border-gray-500 border-solid">
             <span class="material-symbols-outlined !text-9xl text-gray-600">
                 data_object
             </span>
             <span class="text-sm text-gray-600 ">{{file.fileName}}</span>
             <span class="">{{file.fileSize}}, {{file.created | date: 'medium'}}</span>
+
+            <span class="material-symbols-outlined text-green-500 absolute top-4 right-4 !text-4xl" *ngIf="completedFiles.includes(file.originalName)">
+                download_done
+            </span>
         </div>
         } @empty {
         <div class="col-span-4 h-[300px]">

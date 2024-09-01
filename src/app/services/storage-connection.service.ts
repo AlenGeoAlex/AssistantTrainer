@@ -44,7 +44,7 @@ export class StorageConnectionService {
     })
   }
 
-  getBloByName(name: string) {
+  getBlobByName(name: string) {
     return this.containerClient?.getBlobClient(name).download().then(value => {
       return value.blobBody;
     }).then(value => {
@@ -54,19 +54,18 @@ export class StorageConnectionService {
     })
   }
 
-  public async* getTrainingData(assistantName: string): AsyncIterableIterator<IStorageFiles[]> {
+  public async *getTrainingData(assistantName: string): AsyncIterableIterator<IStorageFiles[]> {
     if (!this.selectedAssistant || !this.containerClient)
       return Promise.reject("No valid connection configuration present");
 
     let continuationToken = "";
     let currentPage = 1;
-    let currentItem = 1;
     this.containerClient.getBlobClient
     do {
       // Get Page of Blobs
       const iterator = (continuationToken != "")
-        ? this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 1, continuationToken })
-        : this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 1 });
+        ? this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 20, continuationToken })
+        : this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 20 });
 
       const page = (await iterator.next()).value;
       console.log(page)

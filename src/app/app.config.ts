@@ -5,6 +5,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { routes } from "./app.routes";
 import { MessageService } from "primeng/api";
 import { provideHttpClient } from "@angular/common/http";
+import { DialogService } from 'primeng/dynamicdialog';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,5 +13,6 @@ export const appConfig: ApplicationConfig = {
     MessageService,
     importProvidersFrom(BrowserAnimationsModule),
     provideHttpClient(),
+    DialogService
   ],
 };

@@ -19,9 +19,32 @@ body {
 
 .material-symbols-outlined {
     font-size: 20px;
-     font-variation-settings:
+    font-variation-settings:
         'FILL'0,
         'wght'400,
         'GRAD'0,
         'opsz'20
+}
+
+.p-togglebutton {
+    &.p-highlight {
+        p-button-label {
+            color: #ffffff;
+            background-color: #007ad9;
+        }
+    }
+}
+
+.custom-clr-tbutton {
+    .p-togglebutton.p-highlight .p-button-label {
+        color: #ffffff;
+        @apply bg-green-500;
+        @apply bg-opacity-30;
+    }
+    
+    .p-togglebutton .p-button-label {
+        color: #ffffff;
+        @apply bg-red-500;
+        @apply bg-opacity-30;
+    }
 }

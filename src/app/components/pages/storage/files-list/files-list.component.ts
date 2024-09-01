@@ -5,6 +5,8 @@ import { DataViewModule } from 'primeng/dataview';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
+import { store } from '../../../../store/store';
+import { StoreKeys } from '../../../../store/store-keys';
 
 @Component({
   selector: 'app-files-list',
@@ -22,16 +24,16 @@ export class FilesListComponent implements OnInit {
   private blobIterator?: AsyncIterableIterator<IStorageFiles[]>;
   public allDataLoaded = false;
 
-  onSelectFile = output<string>();
+  onSelectFile = output<IStorageFiles>();
 
-  ngOnInit(): void {
-    this.refresh().then(() => {
-      console.log(1)
-    })
+  completedFiles: string[] = [];
+
+  async ngOnInit() {
+    this.refresh()
   }
 
   updateData() {
-    return this.blobIterator?.next().then(value => {
+    return this.blobIterator?.next().then(async value => {
       if (value.done) {
         this.allDataLoaded = true;
       }
@@ -56,16 +58,14 @@ export class FilesListComponent implements OnInit {
       return Promise.resolve();
     this.filesList = [];
     this.blobIterator = this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name);
-
     await this.updateData();
-
-    // await this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name)
+    this.completedFiles = await store.get(StoreKeys.PERSIST_COMPLETED_FILES) || [];
     return Promise.resolve();
   }
 
 
   onClickFile(file: IStorageFiles) {
-    this.onSelectFile.emit(file.originalName);
+    this.onSelectFile.emit(file);
   }
 
 

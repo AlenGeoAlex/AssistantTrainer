@@ -1,0 +1,5 @@
+<div class="app-ace-editor rounded-[6px]" style="width: 80vw;height: 60vh;" #editor></div>
+<div class="w-full flex justify-end pt-4 gap-4 items-center">
+    <p-button label="Close" [outlined]="true" (onClick)="dialogRef.close()" />
+    <p-button label="Save" [outlined]="false" (onClick)="checkAndClose()" />
+</div>

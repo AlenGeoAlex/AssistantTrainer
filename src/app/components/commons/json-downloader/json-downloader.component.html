@@ -1,0 +1,19 @@
+<div class="w-full flex gap-4 py-4">
+    <input type="text" pInputText [(ngModel)]="fileName" placeholder="File Name" class="grow" />
+    <button pButton severity="success" [outlined]="true" class="flex items-center gap-2" (click)="downloadJSON()">
+        Download
+        <span class="material-symbols-outlined">
+            download
+        </span>
+    </button>
+    <button pButton severity="success" [outlined]="true" class="flex items-center gap-2" (click)="copyToClipboard()">
+        Copy to Clipboard
+        <span class="material-symbols-outlined">
+            content_copy
+        </span>
+    </button>
+</div>
+<div class="app-ace-editor rounded-[6px]" style="width: 80vw;height: 50vh;" #editor></div>
+<div class="w-full flex justify-end pt-4 gap-4 items-center">
+    <p-button label="Close" [outlined]="true" (onClick)="dialogRef.close()" />
+</div>
