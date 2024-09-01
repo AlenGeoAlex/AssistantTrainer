@@ -1,20 +1,38 @@
-<div class="w-full flex justify-end gap-4 h-full p-4">
-    <p-dropdown [options]="assistantsData" (onChange)="this.selectAssistant($event)" [(ngModel)]="connectionService.selectedAssistant"
-        placeholder="Select an Assistant" styleClass="w-[20rem]" [filter]="true" optionLabel="name" />
-
-
-    <button pButton (click)="menu.toggle($event)">
-        <span class="flex gap-2">
-            Options
-            <span class="material-symbols-outlined">apps</span>
-        </span>
-    </button>
-
-
-    <p-menu #menu [model]="menuItem" [popup]="true" />
+<div class="w-full flex justify-between gap-4 h-full py-4">
+    <div class="flex items-center gap-1">
+        @if (selectedFileName) {
+            <span class="text-lg">Reviewing: {{selectedFileName.split('/').pop()}}</span>
+            <button pButton [rounded]="true" [text]="true" severity="danger" (click)="selectedFileName=''" >
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+            </button>
+        } @else {
+            <span class="text-lg">Choose a file to review</span>
+        }
+    </div>
+    <div class="flex justify-between gap-4">
+        <p-dropdown [options]="assistantsData" (onChange)="this.selectAssistant($event)" [(ngModel)]="connectionService.selectedAssistant"
+            placeholder="Select an Assistant" styleClass="w-[20rem]" [filter]="true" optionLabel="name" />
+    
+    
+        <button pButton (click)="menu.toggle($event)">
+            <span class="flex gap-2">
+                Options
+                <span class="material-symbols-outlined">apps</span>
+            </span>
+        </button>
+    
+    
+        <p-menu #menu [model]="menuItem" [popup]="true" />
+    </div>
 </div>
 
-<app-files-list #refFileList></app-files-list>
+@if (selectedFileName) {
+    <app-review-file [fileName]="selectedFileName"></app-review-file>
+} @else {
+    <app-files-list #refFileList (onSelectFile)="selectedFileName = $event"></app-files-list>
+}
 
 
 <p-dialog header="Connect to Storage" [modal]="true" [(visible)]="showConnectionDialog" [style]="{ width: '30vw' }">

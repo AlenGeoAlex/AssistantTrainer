@@ -3,5 +3,6 @@ export interface IStorageFiles {
     fileSize: number,
     created: Date | string | number,
     url?: string,
-    id: string
+    id: string,
+    originalName: string
 }

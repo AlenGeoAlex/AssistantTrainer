@@ -18,11 +18,12 @@ import {store} from "../../../store/store";
 import {LoaderService} from "../../../services/loader.service";
 import {MenuModule} from "primeng/menu";
 import {StoreKeys} from "../../../store/store-keys";
+import { ReviewFileComponent } from "./review-file/review-file.component";
 
 @Component({
   selector: 'app-storage',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule],
+  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule, ReviewFileComponent],
   templateUrl: './storage.component.html',
   styles: ``
 })
@@ -38,6 +39,8 @@ export class StorageComponent implements OnInit {
   protected showToolDialog: boolean = false;
   protected showOpenAiDialog: boolean = false;
   assistantsData: IAssistant[] = [];
+
+  selectedFileName: string = '';
 
   connectionForm = new FormGroup<IConnectionConfigForm>({
     connectionString: new FormControl('', Validators.required),

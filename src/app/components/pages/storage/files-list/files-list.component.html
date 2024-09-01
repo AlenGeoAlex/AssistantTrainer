@@ -1,12 +1,27 @@
-<div class="grid grid-cols-4 gap-4">
-    @for(file of filesList; track file.id) {
-
-    } @empty {
+<div class="w-full h-[calc(100vh-155px)] overflow-auto">
+    <div class="grid grid-cols-4 gap-4">
+        @for(file of filesList; track file.id) {
+        <div (click)="onClickFile(file)"
+            class="rounded-lg transition-all cursor-pointer bg-gray-800 p-4 flex flex-col items-center justify-center border-2 border-transparent hover:border-gray-500 border-solid">
+            <span class="material-symbols-outlined !text-9xl text-gray-600">
+                data_object
+            </span>
+            <span class="text-sm text-gray-600 ">{{file.fileName}}</span>
+            <span class="">{{file.fileSize}}, {{file.created | date: 'medium'}}</span>
+        </div>
+        } @empty {
         <div class="col-span-4 h-[300px]">
             <div class="flex justify-center items-center h-full flex-col gap-8">
                 <span class="material-symbols-outlined !text-6xl">folder</span>
                 <span class="text-2xl">No files to show</span>
             </div>
         </div>
-    }
+        }
+        @if (filesList.length > 0 && !allDataLoaded) {
+        <!-- show a load more button -->
+        <div class="col-span-4 flex justify-center items-center">
+            <p-button label="Load More..." [outlined]="true" (onClick)="updateData()" />
+        </div>
+        }
+    </div>
 </div>

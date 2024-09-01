@@ -1,19 +1,28 @@
-import {Component, inject, input, OnInit} from '@angular/core';
+import { Component, inject, input, OnInit, output } from '@angular/core';
 import { IStorageFiles } from '../../../../models/storage-files';
-import {StorageConnectionService} from "../../../../services/storage-connection.service";
+import { StorageConnectionService } from "../../../../services/storage-connection.service";
+import { DataViewModule } from 'primeng/dataview';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-files-list',
   standalone: true,
-  imports: [],
+  imports: [DataViewModule, CommonModule, ButtonModule],
   templateUrl: './files-list.component.html',
   styles: ``
 })
-export class FilesListComponent implements OnInit{
+export class FilesListComponent implements OnInit {
 
   private readonly connectionService = inject(StorageConnectionService);
+  private readonly messageService = inject(MessageService)
 
-  protected readonly filesList : IStorageFiles[] = []
+  protected filesList: IStorageFiles[] = [];
+  private blobIterator?: AsyncIterableIterator<IStorageFiles[]>;
+  public allDataLoaded = false;
+
+  onSelectFile = output<string>();
 
   ngOnInit(): void {
     this.refresh().then(() => {
@@ -21,12 +30,43 @@ export class FilesListComponent implements OnInit{
     })
   }
 
-  public async refresh() : Promise<void>{
-    if(!this.connectionService.selectedAssistant)
-      return Promise.resolve();
+  updateData() {
+    return this.blobIterator?.next().then(value => {
+      if (value.done) {
+        this.allDataLoaded = true;
+      }
+      if (!value.value) {
+        this.messageService.add({ severity: 'warn', summary: 'All files loaded', detail: 'No more data to load' })
+        return;
+      }
+      this.filesList = [...this.filesList, ...value.value];
+      console.log(value)
+      // this.connectionService.getBloByName(this.filesList[0].fileName)?.download().then(async value => {
+      //   console.log(await (await value.blobBody)?.text()) 
+      // })
+      if (value.done) {
+        this.allDataLoaded = true;
+        return;
+      }
+    })
+  }
 
-    await this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name)
+  public async refresh(): Promise<void> {
+    if (!this.connectionService.selectedAssistant)
+      return Promise.resolve();
+    this.filesList = [];
+    this.blobIterator = this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name);
+
+    await this.updateData();
+
+    // await this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name)
     return Promise.resolve();
   }
+
+
+  onClickFile(file: IStorageFiles) {
+    this.onSelectFile.emit(file.originalName);
+  }
+
 
 }
