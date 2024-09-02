@@ -19,11 +19,15 @@ import { LoaderService } from "../../../services/loader.service";
 import { MenuModule } from "primeng/menu";
 import { StoreKeys } from "../../../store/store-keys";
 import { ReviewFileComponent } from "./review-file/review-file.component";
+import {CheckboxModule} from "primeng/checkbox";
+import {ReviewService} from "../../../services/review.service";
+import {LocalFileService} from "../../../services/local-file.service";
+import {open} from "@tauri-apps/api/dialog";
 
 @Component({
   selector: 'app-storage',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule, ReviewFileComponent],
+  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule, ReviewFileComponent, CheckboxModule],
   templateUrl: './storage.component.html',
   styles: ``
 })
@@ -35,7 +39,9 @@ export class StorageComponent implements OnInit {
   protected connectionService = inject(StorageConnectionService)
   private messageService = inject(MessageService)
   protected assistantService = inject(AssistantsService)
+  protected reviewService = inject(ReviewService)
   private loaderService = inject(LoaderService);
+  protected localFileService = inject(LocalFileService);
 
   protected showConnectionDialog: boolean = false;
   protected showToolDialog: boolean = false;
@@ -48,6 +54,7 @@ export class StorageComponent implements OnInit {
   connectionForm = new FormGroup<IConnectionConfigForm>({
     connectionString: new FormControl('', Validators.required),
     path: new FormControl('', Validators.required),
+    includeReviewed: new FormControl(false),
   })
 
   toolDialogValue: string | undefined;
@@ -92,13 +99,19 @@ export class StorageComponent implements OnInit {
       ]
     },
     {
-      label: 'Persistance',
+      label: 'Finally!',
       items: [
         {
-          label: 'Clear Completed',
+          label: 'Export JSONL',
           icon: 'pi pi-times',
-          command: () => {
-            store.remove(StoreKeys.PERSIST_COMPLETED_FILES)
+          command: async () => {
+            if(!this.reviewService.canExport()){
+              this.messageService.add({severity: 'error', summary: 'No marked reviews', detail: 'Please mark at least one conversation as reviewed'})
+              return;
+            }
+            setTimeout(async () => {
+              await this.export();
+            }, 400)
           }
         }
       ]
@@ -317,4 +330,32 @@ export class StorageComponent implements OnInit {
     this.completedFileData = file;
   }
 
+  async addLocalFile($event: MouseEvent) {
+    try {
+      const newFile = await this.localFileService.addLocal(undefined, $event);
+      if(newFile)
+        this.selectedFileName = newFile;
+    }catch (err){
+      this.messageService.add({severity: 'error', summary: 'Failed to create', detail: err?.toString() || 'An error occurred while creating a new file', });
+    }
+  }
+
+  async export(){
+    let savePath = undefined;
+    let asst = this.connectionService.selectedAssistant
+    if(!asst){
+      this.messageService.add({
+        severity: 'error', summary: "Unknown Assistant", detail: "Please select an assistant!"
+      })
+      return;
+    }
+    if('__TAURI__' in window){
+      savePath = await open({
+        multiple: false,
+        directory: true
+      });
+    }
+
+    await this.reviewService.export(asst.name, savePath)
+  }
 }

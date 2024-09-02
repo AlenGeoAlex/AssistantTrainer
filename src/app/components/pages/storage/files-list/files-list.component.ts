@@ -5,8 +5,8 @@ import { DataViewModule } from 'primeng/dataview';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
-import { store } from '../../../../store/store';
-import { StoreKeys } from '../../../../store/store-keys';
+import {ReviewService} from "../../../../services/review.service";
+import {LocalFileService} from "../../../../services/local-file.service";
 
 @Component({
   selector: 'app-files-list',
@@ -19,17 +19,16 @@ export class FilesListComponent implements OnInit {
 
   private readonly connectionService = inject(StorageConnectionService);
   private readonly messageService = inject(MessageService)
+  protected readonly reviewService = inject(ReviewService);
+  protected readonly localFileService = inject(LocalFileService);
 
   protected filesList: IStorageFiles[] = [];
   private blobIterator?: AsyncIterableIterator<IStorageFiles[]>;
   public allDataLoaded = false;
 
   onSelectFile = output<IStorageFiles>();
-
-  completedFiles: string[] = [];
-
   async ngOnInit() {
-    this.refresh()
+    await this.refresh()
   }
 
   updateData() {
@@ -41,11 +40,8 @@ export class FilesListComponent implements OnInit {
         this.messageService.add({ severity: 'warn', summary: 'All files loaded', detail: 'No more data to load' })
         return;
       }
+
       this.filesList = [...this.filesList, ...value.value];
-      console.log(value)
-      // this.connectionService.getBloByName(this.filesList[0].fileName)?.download().then(async value => {
-      //   console.log(await (await value.blobBody)?.text()) 
-      // })
       if (value.done) {
         this.allDataLoaded = true;
         return;
@@ -59,7 +55,6 @@ export class FilesListComponent implements OnInit {
     this.filesList = [];
     this.blobIterator = this.connectionService.getTrainingData(this.connectionService.selectedAssistant.name);
     await this.updateData();
-    this.completedFiles = await store.get(StoreKeys.PERSIST_COMPLETED_FILES) || [];
     return Promise.resolve();
   }
 
@@ -68,5 +63,25 @@ export class FilesListComponent implements OnInit {
     this.onSelectFile.emit(file);
   }
 
+  onReviewRemove(file: any, $event: any){
+    this.reviewService.remove(file.fileName);
+    $event.stopPropagation()
+    this.messageService.add({ severity: 'info', summary: "Success", detail: 'Reviewed file removed' })
+  }
 
+
+  async addLocalFile(file: IStorageFiles, $event: MouseEvent) {
+    try {
+      const duplicatedFile = await this.localFileService.addLocal(file, $event);
+      if(!duplicatedFile)
+        return
+
+      console.log(duplicatedFile);
+
+      this.onClickFile(duplicatedFile);
+    }catch (err){
+      this.messageService.add({severity: 'error', summary: 'Failed to create', detail: err?.toString() || `An error occurred while duplicating file ${file.id}`, });
+    }
+
+  }
 }

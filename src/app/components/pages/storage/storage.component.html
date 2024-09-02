@@ -12,15 +12,30 @@
                 close
             </span>
         </button>
-        <button pButton severity="success" [outlined]="true"
+        <button pButton severity="info" [outlined]="true"
             class="flex items-center gap-2" (click)="reviewFile?.completeReview()">
-            Complete Review
+            Download
             <span class="material-symbols-outlined">
-                check_circle
+                download
             </span>
         </button>
+            @if(this.reviewService.isReviewed(selectedFileName.fileName)){
+                <button pButton severity="danger" [outlined]="true" class="flex items-center gap-2" (click)="reviewService.remove(selectedFileName.fileName)">
+                    Remove Review
+                    <span class="material-symbols-outlined">check_circle</span>
+                </button>
+            }@else{
+                <button pButton severity="success" [outlined]="true" class="flex items-center gap-2" (click)="reviewFile?.markReviewed()">
+                    Mark Reviewed
+                    <span class="material-symbols-outlined">check_circle</span>
+                </button>
+            }
         } @else {
-        <span class="text-lg">Choose a file to review</span>
+            <span class="text-lg">Choose a file to review</span>
+            <button pButton severity="primary" [outlined]="true" class="flex items-center gap-1" (click)="this.addLocalFile($event)">
+                Add
+                <span class="material-symbols-outlined">add</span>
+            </button>
         }
     </div>
     <div class="flex justify-between gap-4">
@@ -42,7 +57,7 @@
 </div>
 
 @if (selectedFileName) {
-<app-review-file (onDownloaded)="closeFile()" [fileName]="selectedFileName.originalName"></app-review-file>
+<app-review-file (onDownloaded)="closeFile()" (onClose)="closeFile()" [fileName]="selectedFileName.originalName" [fileBlob]="selectedFileName.localBlob"></app-review-file>
 } @else {
 <app-files-list #refFileList (onSelectFile)="selectedFileName = $event"></app-files-list>
 }
@@ -58,6 +73,13 @@
         <div class="flex flex-col gap-3 mb-3 items-start w-full">
             <label for="path" class="font-semibold w-full">Path</label>
             <input pInputText id="path" class="flex-auto w-full" autocomplete="off" formControlName="path" />
+        </div>
+        <div class="flex align-items-center gap-3 items-start w-full">
+            <p-checkbox
+                    formControlName="includeReviewed"
+                    value="Include Reviewed"
+                    inputId="includeReviewed" />
+            <label for="path" class="font-semibold w-full">Include Reviewed</label>
         </div>
         <div class="flex justify-end gap-2 mt-8 w-full">
             <p-button label="Cancel" severity="secondary" (onClick)="closeDialog()" />

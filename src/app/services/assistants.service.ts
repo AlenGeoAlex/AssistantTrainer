@@ -68,4 +68,15 @@ export class AssistantsService {
     return Promise.resolve(assistant.tools);
   }
 
+  public async fetchSystemPrompt(id: string) : Promise<string | null>{
+    if(!this.client)
+      return Promise.reject("No OpenAI client found.")
+
+    const assistant = await this.client.beta.assistants.retrieve(id);
+    if(!assistant)
+      return Promise.reject(undefined);
+
+    return Promise.resolve(assistant.instructions);
+  }
+
 }

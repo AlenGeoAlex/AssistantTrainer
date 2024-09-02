@@ -45,6 +45,7 @@ export class StorageConnectionService {
   }
 
   getBlobByName(name: string) {
+
     return this.containerClient?.getBlobClient(name).download().then(value => {
       return value.blobBody;
     }).then(value => {
@@ -60,23 +61,25 @@ export class StorageConnectionService {
 
     let continuationToken = "";
     let currentPage = 1;
+    const listOptions = {
+      includeMetadata: true,
+      includeSnapshots: false,
+      includeTags: true,
+      includeVersions: false
+    };
+
+    let query = `assistant = '${this.selectedAssistant.name}'`;
+    if(!this.selectedAssistant.includeReviewed){
+      query += ` AND processed = 'false'`
+    }
 
     do {
       // Get Page of Blobs
       const iterator = (continuationToken != "")
-        ? this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 20, continuationToken })
-        : this.containerClient.listBlobsFlat({ prefix: `${assistantName}/` }).byPage({ maxPageSize: 20 });
+        ? this.containerClient.findBlobsByTags(query).byPage({ maxPageSize: 20, continuationToken })
+        : this.containerClient.findBlobsByTags(query).byPage({ maxPageSize: 20 });
 
       const page = (await iterator.next()).value;
-      console.log(page)
-
-      // Display list
-      // if (page.segment?.blobItems) {
-      //   console.log(`\tPage [${currentPage}] `);
-      //   for (const blob of page.segment.blobItems) {
-      //     console.log(`\t\tItem [${currentItem++}] ${blob.name}`);
-      //   }
-      // };
 
       // Move to next page
       continuationToken = page.continuationToken;
@@ -84,48 +87,29 @@ export class StorageConnectionService {
         currentPage++;
       }
 
-      yield page.segment.blobItems.map((blob: BlobItem) => {
+      yield page.blobs.map((blob: BlobItem) => {
+        let processed = false;
+        let createdRaw = undefined;
+        if(blob.tags){
+          if(Object.hasOwn(blob.tags, "processed")){
+            processed = blob.tags["processed"] === 'true';
+          }
+
+          if(Object.hasOwn(blob.tags, "created")){
+            createdRaw = blob.tags["created"];
+          }
+        }
+
         return {
           fileName: (blob.name || '').split('/').pop() || '',
-          fileSize: this.humanFileSize(blob.properties.contentLength || 0),
-          created: new Date(blob.properties.createdOn!),
+          created: createdRaw || new Date().toISOString().split("T")[0], //TODO
           id: blob.name,
-          originalName: blob.name
+          originalName: blob.name,
+          processed: processed
         }
       })
 
     } while (continuationToken != "")
-
-
-
-
-
-
-
-
-
-    // const iterator = this.containerClient.listBlobsFlat({
-    //   prefix: `${assistantName}/`,
-    // }).byPage({ maxPageSize: 1 });
-
-    // for await (const element of iterator) {
-    //   console.log(element)
-    //   console.log(element.segment.blobItems)
-    //   yield element.segment.blobItems.map(blob => {
-    //     return {
-    //       fileName: blob.name,
-    //       fileSize: blob.properties.contentLength || 0,
-    //       created: new Date(blob.properties.createdOn!),
-    //       id: blob.name
-    //     }
-    //   })
-    // }
-
-    // for await (const file of iterator) {
-    //   console.log(file)
-    // }
-
-    // return Promise.resolve([])
   }
 
   humanFileSize(bytes: number, si = false, dp = 2) {

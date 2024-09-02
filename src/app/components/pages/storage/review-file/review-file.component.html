@@ -23,7 +23,9 @@
                     </button>
                 </td>
                 <td>{{ row.role }}</td>
-                <td>{{ row.content }}</td>
+                <td><div class="w-[70vw] truncate">
+                    {{ row.content }}
+                </div></td>
                 <td>
                     <p-toggleButton [(ngModel)]="row.accepted" onLabel="Accepted" class="custom-clr-tbutton"
                         offLabel="Rejected" />

@@ -1,17 +1,32 @@
 <div class="w-full h-[calc(100vh-155px)] overflow-auto">
     <div class="grid grid-cols-4 gap-4">
-        @for(file of filesList; track file.id) {
+        @for(file of localFileService.localList.concat(filesList); track file.id) {
         <div (click)="onClickFile(file)"
-            class="rounded-lg relative transition-all cursor-pointer bg-gray-800 p-4 flex flex-col items-center justify-center border-2 border-transparent hover:border-gray-500 border-solid">
+             [ngClass]="file.id.endsWith('.local') ? 'bg-gray-900' : 'bg-gray-800'"
+            class="rounded-lg relative transition-all cursor-pointer p-4 flex flex-col items-center justify-center border-2 border-transparent hover:border-gray-500 border-solid">
             <span class="material-symbols-outlined !text-9xl text-gray-600">
                 data_object
             </span>
             <span class="text-sm text-gray-600 ">{{file.fileName}}</span>
-            <span class="">{{file.fileSize}}, {{file.created | date: 'medium'}}</span>
+            <span class="">{{file.created | date: 'medium'}}</span>
+            @if(file.processed){
+                <span class="material-symbols-outlined text-green-400 absolute top-2 right-2 !text-2xl">
+                    download_done
+                </span>
+            }
+            @else if(this.reviewService.isReviewed(file.fileName)){
+                <button pButton [text]="true" class="absolute top-2 right-2" [rounded]="true" (click)="onReviewRemove(file, $event)">
+                    <span class="material-symbols-outlined text-blue-400 !text-2xl">
+                        arrow_upload_ready
+                    </span>
+                </button>
+            }
 
-            <span class="material-symbols-outlined text-green-500 absolute top-4 right-4 !text-4xl" *ngIf="completedFiles.includes(file.originalName)">
-                download_done
-            </span>
+            <button pButton [text]="'Copy'" class="absolute bottom-1 right-1" [rounded]="true" (click)="this.addLocalFile(file, $event)">
+                    <span class="material-symbols-outlined text-gray-200 !text-2md">
+                        control_point_duplicate
+                    </span>
+            </button>
         </div>
         } @empty {
         <div class="col-span-4 h-[300px]">

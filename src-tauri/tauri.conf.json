@@ -3,7 +3,7 @@
     "beforeDevCommand": "npm run start",
     "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
-    "distDir": "../dist/assistant-trainer/browser"
+    "distDir": "../dist/assistant-trainer/browser/"
   },
   "package": {
     "productName": "assistant-trainer",
@@ -18,6 +18,14 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "dialog": {
+        "all": true,
+        "ask": true,
+        "confirm": true,
+        "message": true,
+        "open": true,
+        "save": true
       }
     },
     "windows": [
