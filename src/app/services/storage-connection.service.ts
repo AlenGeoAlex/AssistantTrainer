@@ -60,7 +60,7 @@ export class StorageConnectionService {
 
     let continuationToken = "";
     let currentPage = 1;
-    this.containerClient.getBlobClient
+
     do {
       // Get Page of Blobs
       const iterator = (continuationToken != "")
