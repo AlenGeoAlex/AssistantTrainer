@@ -6,7 +6,7 @@
     "distDir": "../dist/assistant-trainer/browser/"
   },
   "package": {
-    "productName": "assistant-trainer",
+    "productName": "Assistant Trainer",
     "version": "0.1.0"
   },
   "tauri": {
