@@ -183,9 +183,20 @@ export class ReviewFileComponent implements OnInit {
   markReviewed(){
     const filteredData = this.filterSubmission();
     const fileName = this.fileName().split('/').pop()!;
-    this.reviewService.review(fileName, filteredData);
-    this.messageService.add({ severity: 'info', summary: 'Marked', detail: "Marked as reviewed" })
     this.onClose.emit()
+    this.reviewService.review(fileName, filteredData);
+    this.messageService.add({ severity: 'info', summary: 'Marked', detail: 'Marked as reviewed' })
+  }
+
+  updateReviewed(){
+    const fileName = this.fileName().split('/').pop()!;
+    const alreadyReviewed = this.reviewService.isReviewed(fileName);
+    if(!alreadyReviewed)
+      return;
+
+    const filteredData = this.filterSubmission();
+    this.reviewService.review(fileName, filteredData);
+    this.messageService.add({ severity: 'info', summary: 'Marked', detail: 'The review has been updated'  })
   }
 
   private filterSubmission() : any{

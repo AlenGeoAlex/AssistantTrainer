@@ -4,6 +4,8 @@ import {LoaderService} from "./loader.service";
 import {MessageService} from "primeng/api";
 import {StorageConnectionService} from "./storage-connection.service";
 import { open } from '@tauri-apps/api/shell';
+import {store} from "../store/store";
+import {StoreKeys} from "../store/store-keys";
 @Injectable({
   providedIn: 'root'
 })
@@ -34,14 +36,15 @@ export class ReviewService {
 
   public async export(asst: string, savePath: any){
     this.loaderService.showLoading("Preparing")
+    let assistantTool = await store.get(StoreKeys.getAssistantToolKey(asst));
     try {
       const fileName = `${asst.replace(":", "-")}-${new Date().getTime()}.jsonl`;
       if('__TAURI__' in window){
-        this.buildJson();
+        this.buildJson(assistantTool);
         const path = await invoke("export", {
           body: {
             export_path: savePath,
-            json_data: this.buildJson(),
+            json_data: this.buildJson(assistantTool),
             file_name: fileName
           }
         });
@@ -53,7 +56,7 @@ export class ReviewService {
         })
 
       }else{
-        const file = new Blob([this.buildJson()], {
+        const file = new Blob([this.buildJson(assistantTool)], {
           type: "application/json",
         });
 
@@ -79,14 +82,14 @@ export class ReviewService {
   }
 
 
-  private buildJson() : string {
+  private buildJson(assistantTool: any): string {
     let str = "";
     for (let value of this.reviewedFiles.values()) {
       let jsonObject = {
         messages: [
 
         ] ,
-        tools: []
+        tools: assistantTool ?? []
       }
       for (let valueElement of value) {
         // @ts-ignore

@@ -30,7 +30,7 @@
     },
     "windows": [
       {
-        "title": "assistant-trainer",
+        "title": "Assistant Trainer",
         "width": 1000,
         "height": 800,
         "additionalBrowserArgs": "--disable-web-security"

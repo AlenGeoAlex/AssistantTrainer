@@ -6,6 +6,8 @@ import { MessageService } from 'primeng/api';
 import {StorageConnectionService} from "../../../services/storage-connection.service";
 import {AssistantsService} from "../../../services/assistants.service";
 import {addWarning} from "@angular-devkit/build-angular/src/utils/webpack-diagnostics";
+import {store} from "../../../store/store";
+import {StoreKeys} from "../../../store/store-keys";
 
 @Component({
   selector: 'app-json-editor',
@@ -50,6 +52,11 @@ export class JSONEditorComponent implements AfterViewInit {
   checkAndClose() {
     try {
       const parsed = JSON.parse(this.editedJSON);
+      if(this.isSystemPrompt && this.connectionService.selectedAssistant){
+        store.set(StoreKeys.getSystemPromptKey(this.connectionService.selectedAssistant.name), parsed.content || '').then(() => {
+          this.messageService.add({ severity: 'info', summary: 'Updated System Prompt', detail: 'System prompt has been updated and will be reflected for newer reviews' })
+        })
+      }
       this.dialogRef?.close(parsed);
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Invalid JSON', detail: 'Please correct the JSON and try again' })

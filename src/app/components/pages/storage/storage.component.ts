@@ -161,10 +161,14 @@ export class StorageComponent implements OnInit {
     this.showOpenAiDialog = true;
   }
 
-  protected showToolDialogBox() {
+  protected async showToolDialogBox() {
     if (!this.connectionService.selectedAssistant) {
       this.messageService.add({ severity: 'warn', summary: 'No Assistant Selected', detail: 'Please select an assistant first', });
       return;
+    }
+    const newVar = await store.get(StoreKeys.getAssistantToolKey(this.connectionService.selectedAssistant.name));
+    if(!newVar){
+      this.toolDialogValue = JSON.stringify(newVar);
     }
     this.showToolDialog = true;
   }
@@ -321,6 +325,10 @@ export class StorageComponent implements OnInit {
   }
 
   closeFile() {
+    if(this.selectedFileName && this.reviewService.isReviewed(this.selectedFileName.fileName)){
+      this.reviewFile?.updateReviewed();
+    }
+
     this.selectedFileName = undefined;
     this.completedFileData = undefined;
     this.appFileList?.refresh();

@@ -3,6 +3,7 @@ import {StorageConnectionService} from "./storage-connection.service";
 import {MessageService} from "primeng/api";
 import {ReviewService} from "./review.service";
 import {IStorageFiles} from "../models/storage-files";
+import {LoaderService} from "./loader.service";
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ export class LocalFileService {
 
   private readonly connectionService = inject(StorageConnectionService);
   private readonly messageService = inject(MessageService)
+  private readonly loaderService = inject(LoaderService)
   protected readonly reviewService = inject(ReviewService);
 
   public localList: IStorageFiles[] = []
@@ -32,17 +34,23 @@ export class LocalFileService {
         fileName: "", created: new Date(), id: "", url: undefined, localBlob: [], processed: false, originalName: ""
       }
     }
-
     const newStorageFile = structuredClone(existingDoc);
-    newStorageFile.url = undefined;
-    newStorageFile.fileName = `${crypto.randomUUID()}.local`;
-    newStorageFile.id = `${this.connectionService.selectedAssistant.name}/${newStorageFile.fileName}`;
-    newStorageFile.originalName = `${newStorageFile.id}`;
-    newStorageFile.processed = false;
-    newStorageFile.created = existingDoc.created
-    newStorageFile.localBlob = existingDoc.localBlob || await this.connectionService.getBlobByName(existingDoc.originalName);
+    this.loaderService.showLoading("Preparing")
+    try{
+      newStorageFile.url = undefined;
+      newStorageFile.fileName = `${crypto.randomUUID()}.local`;
+      newStorageFile.id = `${this.connectionService.selectedAssistant.name}/${newStorageFile.fileName}`;
+      newStorageFile.originalName = `${newStorageFile.id}`;
+      newStorageFile.processed = false;
+      newStorageFile.created = existingDoc.created
+      newStorageFile.localBlob = existingDoc.localBlob || await this.connectionService.getBlobByName(existingDoc.originalName);
 
-    this.localList.push(newStorageFile)
+      this.localList.push(newStorageFile)
+    }catch (err){
+
+    }finally {
+      this.loaderService.disableLoading()
+    }
     return newStorageFile;
   }
 

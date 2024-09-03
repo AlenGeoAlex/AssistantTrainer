@@ -39,7 +39,7 @@
         }
     </div>
     <div class="flex justify-between gap-4">
-        <p-dropdown [options]="assistantsData" (onChange)="this.selectAssistant($event)"
+        <p-dropdown [readonly]="this.selectedFileName" [options]="assistantsData" (onChange)="this.selectAssistant($event)"
             [(ngModel)]="connectionService.selectedAssistant" placeholder="Select an Assistant" styleClass="w-[20rem]"
             [filter]="true" optionLabel="name" />
 
