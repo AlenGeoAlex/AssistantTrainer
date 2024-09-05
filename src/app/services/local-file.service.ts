@@ -43,6 +43,7 @@ export class LocalFileService {
       newStorageFile.originalName = `${newStorageFile.id}`;
       newStorageFile.processed = false;
       newStorageFile.created = existingDoc.created
+      newStorageFile.sessionId = undefined
       newStorageFile.localBlob = existingDoc.localBlob || await this.connectionService.getBlobByName(existingDoc.originalName);
 
       this.localList.push(newStorageFile)

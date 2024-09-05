@@ -8,7 +8,10 @@
                 data_object
             </span>
             <span class="text-sm text-gray-600 ">{{file.fileName}}</span>
-            <span class="">{{file.created | date: 'medium'}}</span>
+            @if(file.sessionId){
+                <span>{{file.sessionId}}</span>
+            }
+            <span class=""> {{file.created | date: 'medium'}}</span>
             @if(file.processed){
                 <span class="material-symbols-outlined text-green-400 absolute top-2 right-2 !text-2xl">
                     download_done

@@ -6,4 +6,5 @@ export interface IStorageFiles {
     originalName: string,
     processed: boolean
     localBlob: any | undefined;
+    sessionId: string | undefined
 }

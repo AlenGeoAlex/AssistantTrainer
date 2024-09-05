@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import {ReviewService} from "../../../../services/review.service";
 import {LocalFileService} from "../../../../services/local-file.service";
+import {LoaderService} from "../../../../services/loader.service";
 
 @Component({
   selector: 'app-files-list',
@@ -21,6 +22,8 @@ export class FilesListComponent implements OnInit {
   private readonly messageService = inject(MessageService)
   protected readonly reviewService = inject(ReviewService);
   protected readonly localFileService = inject(LocalFileService);
+  private readonly loaderService: LoaderService = inject(LoaderService);
+
 
   protected filesList: IStorageFiles[] = [];
   private blobIterator?: AsyncIterableIterator<IStorageFiles[]>;
@@ -32,7 +35,9 @@ export class FilesListComponent implements OnInit {
   }
 
   updateData() {
+    this.loaderService.showLoading("Fetching...")
     return this.blobIterator?.next().then(async value => {
+      this.loaderService.disableLoading();
       if (value.done) {
         this.allDataLoaded = true;
       }
@@ -46,6 +51,8 @@ export class FilesListComponent implements OnInit {
         this.allDataLoaded = true;
         return;
       }
+    }).catch((err) => {
+      this.loaderService.disableLoading();
     })
   }
 

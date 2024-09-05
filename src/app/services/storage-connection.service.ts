@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import { IConnectionConfig } from '../models/connection-config';
 import { Observable, of, throwError } from 'rxjs';
 import { IStorageFiles } from '../models/storage-files';
@@ -6,6 +6,7 @@ import { IAssistant } from "../models/assistant.model";
 import { store } from "../store/store";
 import { StoreKeys } from "../store/store-keys";
 import { BlobItem, BlobServiceClient, ContainerClient } from "@azure/storage-blob";
+import {LoaderService} from "./loader.service";
 
 
 
@@ -13,6 +14,7 @@ import { BlobItem, BlobServiceClient, ContainerClient } from "@azure/storage-blo
   providedIn: 'root'
 })
 export class StorageConnectionService {
+
 
   selectedAssistant: IAssistant | null = null;
 
@@ -61,16 +63,15 @@ export class StorageConnectionService {
 
     let continuationToken = "";
     let currentPage = 1;
-    const listOptions = {
-      includeMetadata: true,
-      includeSnapshots: false,
-      includeTags: true,
-      includeVersions: false
-    };
 
     let query = `assistant = '${this.selectedAssistant.name}'`;
     if(!this.selectedAssistant.includeReviewed){
       query += ` AND processed = 'false'`
+    }
+
+    const azureConfig = await store.get(StoreKeys.PERSIST_AZURE);
+    if(azureConfig && azureConfig.sessionId){
+      query += ` AND sessionId = '${azureConfig.sessionId}'`;
     }
 
     do {
@@ -86,10 +87,11 @@ export class StorageConnectionService {
       if (continuationToken) {
         currentPage++;
       }
-
       yield page.blobs.map((blob: BlobItem) => {
         let processed = false;
         let createdRaw = undefined;
+        let sessionId = undefined;
+
         if(blob.tags){
           if(Object.hasOwn(blob.tags, "processed")){
             processed = blob.tags["processed"] === 'true';
@@ -98,6 +100,10 @@ export class StorageConnectionService {
           if(Object.hasOwn(blob.tags, "created")){
             createdRaw = blob.tags["created"];
           }
+
+          if(Object.hasOwn(blob.tags, "sessionId")){
+            sessionId = blob.tags["sessionId"];
+          }
         }
 
         return {
@@ -105,7 +111,8 @@ export class StorageConnectionService {
           created: createdRaw || new Date().toISOString().split("T")[0], //TODO
           id: blob.name,
           originalName: blob.name,
-          processed: processed
+          processed: processed,
+          sessionId: sessionId
         }
       })
 
@@ -132,6 +139,60 @@ export class StorageConnectionService {
 
 
     return bytes.toFixed(dp) + ' ' + units[u];
+  }
+
+  setProcessed(names: string[]) : Observable<{name: string, status: boolean}> {
+    return new Observable<{name: string, status: boolean}>((obs) => {
+      const urlBatch = this.batchNames(names);
+      let timeoutCounter = 0;
+      console.log(urlBatch)
+      let fileProcessed = 0;
+      for (let batch of urlBatch) {
+        setTimeout(async () => {
+          for (let eachTrainingData of batch) {
+            try {
+              const client = this.containerClient?.getBlobClient(eachTrainingData);
+              if(!client)
+                continue;
+
+              const tags = await client.getTags();
+              if(!tags || !tags.tags)
+                continue;
+
+              const tagRaw = tags.tags;
+              tagRaw["processed"] = "true"
+              await client.setTags(tagRaw)
+              obs.next({
+                name: eachTrainingData,
+                status: true
+              })
+            }catch (err){
+              obs.next({
+                name: eachTrainingData,
+                status: false
+              })
+            }finally {
+              fileProcessed++;
+              if(fileProcessed >= names.length){
+                obs.complete();
+              }
+            }
+          }
+        }, timeoutCounter*2500 );
+
+        timeoutCounter++;
+      }
+    })
+  }
+
+  private batchNames(names: string[]){
+    const size = 15;
+    const arrayOfArrays = [];
+    for (let i=0; i<names.length; i+=size) {
+      arrayOfArrays.push(names.slice(i,i+size));
+    }
+
+    return arrayOfArrays;
   }
 
 }

@@ -74,12 +74,16 @@
             <label for="path" class="font-semibold w-full">Path</label>
             <input pInputText id="path" class="flex-auto w-full" autocomplete="off" formControlName="path" />
         </div>
+        <div class="flex flex-col gap-3 mb-3 items-start w-full">
+            <label for="sessionId" class="font-semibold w-full">Session Id</label>
+            <input pInputText id="sessionId" class="flex-auto w-full" autocomplete="off" formControlName="sessionId" />
+        </div>
         <div class="flex align-items-center gap-3 items-start w-full">
-            <p-checkbox
+            <p-inputSwitch
                     formControlName="includeReviewed"
-                    value="Include Reviewed"
                     inputId="includeReviewed" />
             <label for="path" class="font-semibold w-full">Include Reviewed</label>
+
         </div>
         <div class="flex justify-end gap-2 mt-8 w-full">
             <p-button label="Cancel" severity="secondary" (onClick)="closeDialog()" />

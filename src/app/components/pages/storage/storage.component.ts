@@ -23,11 +23,13 @@ import {CheckboxModule} from "primeng/checkbox";
 import {ReviewService} from "../../../services/review.service";
 import {LocalFileService} from "../../../services/local-file.service";
 import {open} from "@tauri-apps/api/dialog";
+import {ToggleButtonModule} from "primeng/togglebutton";
+import {InputSwitchModule} from "primeng/inputswitch";
 
 @Component({
   selector: 'app-storage',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule, ReviewFileComponent, CheckboxModule],
+  imports: [CommonModule, ButtonModule, DialogModule, ReactiveFormsModule, FilesListComponent, ToastModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, InputTextareaModule, MenuModule, ReviewFileComponent, CheckboxModule, ToggleButtonModule, InputSwitchModule],
   templateUrl: './storage.component.html',
   styles: ``
 })
@@ -55,6 +57,7 @@ export class StorageComponent implements OnInit {
     connectionString: new FormControl('', Validators.required),
     path: new FormControl('', Validators.required),
     includeReviewed: new FormControl(false),
+    sessionId: new FormControl('')
   })
 
   toolDialogValue: string | undefined;
@@ -68,6 +71,10 @@ export class StorageComponent implements OnInit {
           label: 'Azure Storage',
           icon: 'pi pi-refresh',
           command: () => {
+            if(this.selectedFileName){
+              this.messageService.add({ severity: 'warn', summary: "Restricted", detail: "Please close the review page to open the menu!"})
+              return;
+            }
             setTimeout(async () => {
               await this.showDialog();
             }, 400)
@@ -77,6 +84,11 @@ export class StorageComponent implements OnInit {
           label: 'Open AI',
           icon: 'pi pi-upload',
           command: async () => {
+            if(this.selectedFileName){
+              this.messageService.add({ severity: 'warn', summary: "Restricted", detail: "Please close the review page to open the menu!"})
+              return;
+            }
+
             setTimeout(async () => {
               await this.showOpenAiToolDialog();
             }, 400)
@@ -91,6 +103,11 @@ export class StorageComponent implements OnInit {
           label: 'Tool Body',
           icon: 'pi pi-upload',
           command: () => {
+            if(this.selectedFileName){
+              this.messageService.add({ severity: 'warn', summary: "Restricted", detail: "Please close the review page to open the menu!"})
+              return;
+            }
+
             setTimeout(() => {
               this.showToolDialogBox();
             }, 400)
@@ -105,6 +122,11 @@ export class StorageComponent implements OnInit {
           label: 'Export JSONL',
           icon: 'pi pi-times',
           command: async () => {
+            if(this.selectedFileName){
+              this.messageService.add({ severity: 'warn', summary: "Restricted", detail: "Please close the review page to open the menu!"})
+              return;
+            }
+
             if(!this.reviewService.canExport()){
               this.messageService.add({severity: 'error', summary: 'No marked reviews', detail: 'Please mark at least one conversation as reviewed'})
               return;

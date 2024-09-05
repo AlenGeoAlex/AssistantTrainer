@@ -68,6 +68,27 @@ export class ReviewService {
       }
 
 
+      const fileNames:string[] = [];
+      for (let key of this.reviewedFiles.keys()) {
+        if(!key.endsWith("local"))
+          fileNames.push(`${asst}/${key}`);
+      }
+      this.storageConnectionService.setProcessed(fileNames).subscribe({
+        next: (value) => {
+          this.loaderService.showLoading(value.status ? `Updated ${value.name}` : `Failed in processing ${value.name}`)
+        },
+        error: (err) => {
+          this.loaderService.disableLoading();
+          this.messageService.add({
+            severity: 'error',
+            summary: "Failed to update",
+            detail: "Failed to update the file due to "+err?.toString()
+          })
+        },
+        complete: () => {
+          this.loaderService.disableLoading();
+        }
+      })
     }catch (err){
       this.messageService.add({
         severity: 'error',
@@ -75,7 +96,7 @@ export class ReviewService {
         detail: "Failed to save the file due to "+err?.toString()
       })
     }finally {
-      this.loaderService.disableLoading();
+
     }
 
     this.reviewedFiles.clear();
